@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>스터디뱅크 | Study Bank</title>
+<title>스터디뱅크</title>
 
 <style>
 * {
@@ -12,151 +12,388 @@
 
 body {
     margin: 0;
-    padding: 30px 15px;
-    background: #A8DDF2;
-    font-family: Arial, "Malgun Gothic", sans-serif;
-    color: #222;
+    background: #f4f7fc;
+    color: #26344a;
+    font-family: Arial, "Noto Sans KR", sans-serif;
 }
 
-.container {
-    max-width: 760px;
-    min-height: 850px;
-    margin: 0 auto;
-    padding: 65px 75px 35px;
-    background: #fff;
-    border-radius: 40px;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-}
-
-h1 {
-    font-size: 38px;
-    font-weight: 900;
-    line-height: 1.5;
-    margin: 0 0 65px;
-    letter-spacing: -1.5px;
-}
-
-.subjects {
-    display: flex;
-    flex-direction: column;
-    gap: 42px;
-}
-
-.subject-btn {
-    width: 100%;
-    height: 140px;
-    border: none;
-    border-radius: 38px;
-    background: #CFD6DE;
-    color: #222;
-    font-size: 34px;
-    font-weight: 800;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-.subject-btn:hover {
-    background: #B7C7D5;
-    transform: translateY(-3px);
-}
-
-.login-link {
-    margin-top: auto;
-    padding: 55px 0 10px;
-    color: #777;
-    font-size: 17px;
-    text-decoration: none;
-    font-weight: 600;
-}
-
-.login-link:hover {
-    color: #298DBB;
-}
-
-.login-section {
-    display: none;
-    max-width: 760px;
-    margin: 25px auto;
-    padding: 50px;
+header {
     background: white;
-    border-radius: 35px;
-    text-align: center;
+    padding: 20px;
+    border-bottom: 1px solid #e5eaf2;
 }
 
-.login-section:target {
-    display: block;
+.header-inner {
+    max-width: 850px;
+    margin: auto;
 }
 
-.login-section h2 {
-    font-size: 30px;
-    margin-bottom: 35px;
+.logo {
+    font-size: 25px;
+    font-weight: 800;
+    color: #3978cf;
 }
 
-.login-input {
-    display: block;
+.subtitle {
+    margin-top: 8px;
+    color: #78869a;
+    font-size: 14px;
+}
+
+main {
+    max-width: 850px;
+    margin: 30px auto;
+    padding: 0 18px;
+}
+
+.subject {
+    background: #e8f1ff;
+    padding: 22px;
+    border-radius: 14px;
+    margin-bottom: 22px;
+}
+
+.subject h2 {
+    margin: 0 0 8px;
+    font-size: 21px;
+}
+
+.subject p {
+    margin: 0;
+    color: #60738e;
+    font-size: 14px;
+}
+
+.tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.tab {
+    flex: 1;
+    padding: 13px 5px;
+    border: 1px solid #dce4f0;
+    border-radius: 9px;
+    background: white;
+    color: #61718a;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.tab.active {
+    background: #3978cf;
+    border-color: #3978cf;
+    color: white;
+    font-weight: bold;
+}
+
+.progress-area {
+    margin-bottom: 18px;
+}
+
+.progress-text {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: #718097;
+    margin-bottom: 8px;
+}
+
+.progress {
+    height: 7px;
+    background: #e1e8f2;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: #4789e8;
+    width: 0%;
+    transition: width .2s;
+}
+
+.card {
+    background: white;
+    border: 1px solid #e5eaf2;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 4px 15px rgba(30,60,100,.04);
+}
+
+.question-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.question-number {
+    color: #3978cf;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.star {
+    border: none;
+    background: none;
+    font-size: 27px;
+    color: #cbd3df;
+    cursor: pointer;
+}
+
+.star.active {
+    color: #f4b83f;
+}
+
+.question {
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 1.8;
+    margin-bottom: 25px;
+    word-break: keep-all;
+}
+
+.options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
     width: 100%;
-    padding: 17px;
-    margin: 15px 0;
-    border: 1px solid #ccd5dc;
-    border-radius: 12px;
+    padding: 15px;
+    border: 1px solid #dce4ef;
+    border-radius: 10px;
+    background: white;
+    text-align: left;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.option.selected {
+    background: #edf4ff;
+    border: 2px solid #4789e8;
+    color: #2866b8;
+}
+
+.option.correct {
+    background: #e8f7ee;
+    border-color: #43a56a;
+    color: #247c47;
+}
+
+.option.wrong {
+    background: #fff0ef;
+    border-color: #dc6868;
+    color: #b63e3e;
+}
+
+.option:disabled {
+    cursor: default;
+}
+
+.option-label {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 27px;
+    height: 27px;
+    background: #edf1f6;
+    border-radius: 50%;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.fill-area {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.fill-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.fill-item input {
+    width: 180px;
+    max-width: 65%;
+    padding: 12px;
+    border: 1px solid #ccd7e5;
+    border-radius: 8px;
     font-size: 16px;
 }
 
-.login-btn {
-    width: 100%;
-    padding: 17px;
-    margin-top: 15px;
-    border: none;
+.fill-length {
+    color: #718097;
+    font-size: 13px;
+}
+
+.ox-area {
+    display: flex;
+    gap: 15px;
+}
+
+.ox-button {
+    flex: 1;
+    padding: 24px;
+    font-size: 30px;
+    font-weight: bold;
+    border: 1px solid #dce4ef;
+    background: white;
     border-radius: 12px;
-    background: #A8DDF2;
-    font-size: 17px;
+    cursor: pointer;
+}
+
+.ox-button.selected {
+    background: #edf4ff;
+    border: 2px solid #4789e8;
+}
+
+.feedback {
+    margin-top: 22px;
+    padding: 18px;
+    border-radius: 10px;
+    line-height: 1.7;
+    display: none;
+}
+
+.feedback.show {
+    display: block;
+}
+
+.feedback.good {
+    background: #eaf7ef;
+    color: #267b49;
+}
+
+.feedback.bad {
+    background: #fff0ef;
+    color: #a83d3d;
+}
+
+.answer-text {
+    font-weight: bold;
+    margin-top: 7px;
+}
+
+.explanation {
+    margin-top: 8px;
+    font-size: 14px;
+}
+
+.buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 22px;
+}
+
+.action {
+    flex: 1;
+    padding: 15px;
+    border: none;
+    border-radius: 9px;
+    font-size: 15px;
     font-weight: bold;
     cursor: pointer;
 }
 
-.back-link {
-    display: block;
-    margin-top: 25px;
-    color: #777;
-    text-decoration: none;
+.check {
+    background: #3978cf;
+    color: white;
 }
 
-.notice {
-    margin-top: 25px;
-    color: #777;
-    font-size: 15px;
+.next {
+    background: #eaf1fb;
+    color: #326ab5;
+}
+
+.action:disabled {
+    opacity: .45;
+    cursor: default;
+}
+
+.empty {
+    text-align: center;
+    padding: 65px 15px;
+    color: #8290a3;
+    background: white;
+    border-radius: 12px;
+}
+
+footer {
+    text-align: center;
+    padding: 35px 15px;
+    color: #8491a3;
+    font-size: 13px;
+}
+
+.login-button {
+    margin-top: 15px;
+    padding: 11px 28px;
+    background: white;
+    color: #3978cf;
+    border: 1px solid #3978cf;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(20,35,60,.45);
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.modal.show {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 14px;
+    padding: 25px;
+    width: 100%;
+    max-width: 350px;
+    text-align: center;
+    line-height: 1.7;
+}
+
+.modal-content button {
+    padding: 10px 25px;
+    border: none;
+    background: #3978cf;
+    color: white;
+    border-radius: 7px;
+    margin-top: 15px;
 }
 
 @media(max-width:600px) {
-    body {
-        padding: 15px 10px;
+    main {
+        margin-top: 20px;
     }
 
-    .container {
-        min-height: 85vh;
-        padding: 55px 25px 25px;
-        border-radius: 30px;
+    .card {
+        padding: 19px;
     }
 
-    h1 {
-        font-size: 29px;
-        margin-bottom: 55px;
+    .question {
+        font-size: 17px;
     }
 
-    .subjects {
-        gap: 30px;
-    }
-
-    .subject-btn {
-        height: 115px;
-        font-size: 29px;
-        border-radius: 30px;
-    }
-
-    .login-section {
-        padding: 35px 25px;
+    .option {
+        font-size: 14px;
+        padding: 13px;
     }
 }
 </style>
@@ -164,74 +401,573 @@ h1 {
 
 <body>
 
-<main class="container">
+<header>
+    <div class="header-inner">
+        <div class="logo">STUDY BANK</div>
+        <div class="subtitle">나만의 학습 공간</div>
+    </div>
+</header>
 
-    <h1>
-        지구과학Ⅰ 시험대비<br>
-        개념총정리 문항
-    </h1>
+<main>
 
-    <div class="subjects">
+    <section class="subject">
+        <h2>지구과학Ⅰ</h2>
+        <p>Ⅰ. 고체 지구 · 개념 확인 문제</p>
+    </section>
 
-        <button class="subject-btn"
-        onclick="selectSubject('고체')">
-            고체
-        </button>
-
-        <button class="subject-btn"
-        onclick="selectSubject('유체')">
-            유체
-        </button>
-
-        <button class="subject-btn"
-        onclick="selectSubject('우주')">
-            우주
-        </button>
-
+    <div class="tabs">
+        <button class="tab active" data-mode="all">전체 문제</button>
+        <button class="tab" data-mode="favorite">★ 즐겨찾기</button>
+        <button class="tab" data-mode="wrong">오답 노트</button>
     </div>
 
-    <a href="#login" class="login-link">
-        로그인
-    </a>
+    <div class="progress-area">
+        <div class="progress-text">
+            <span id="progress-label">문제 불러오는 중</span>
+            <span id="progress-count"></span>
+        </div>
+        <div class="progress">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+    </div>
+
+    <section class="card" id="quiz">
+        문제를 불러오는 중입니다.
+    </section>
 
 </main>
 
-<section id="login" class="login-section">
+<footer>
+    STUDY BANK · 함께 공부하는 학습 공간
+    <br>
+    <button class="login-button" onclick="openLogin()">로그인</button>
+</footer>
 
-    <h2>스터디뱅크 로그인</h2>
-
-    <input
-        class="login-input"
-        type="text"
-        placeholder="아이디"
-    >
-
-    <input
-        class="login-input"
-        type="password"
-        placeholder="비밀번호"
-    >
-
-    <button class="login-btn"
-    onclick="alert('로그인 시스템을 연결할 예정입니다.')">
-        로그인
-    </button>
-
-    <p class="notice">
-        회원가입 및 계정 인증 기능은 준비 중입니다.
-    </p>
-
-    <a href="#" class="back-link">
-        메인 화면으로 돌아가기
-    </a>
-
-</section>
+<div class="modal" id="loginModal">
+    <div class="modal-content">
+        <h3>로그인</h3>
+        <p>
+            계정별 즐겨찾기 동기화와 관리자 출제 기능은
+            서버 연결 후 이용할 수 있습니다.
+        </p>
+        <button onclick="closeLogin()">확인</button>
+    </div>
+</div>
 
 <script>
 
-function selectSubject(subject) {
-    alert(subject + " 단원은 문제은행 연결 후 이용할 수 있습니다.");
+let questions = [];
+let mode = "all";
+let index = 0;
+let selected = null;
+let submitted = false;
+
+let favorites = JSON.parse(
+    localStorage.getItem("sb_favorites") || "[]"
+);
+
+let wrongs = JSON.parse(
+    localStorage.getItem("sb_wrongs") || "[]"
+);
+
+function saveData() {
+    localStorage.setItem(
+        "sb_favorites",
+        JSON.stringify(favorites)
+    );
+
+    localStorage.setItem(
+        "sb_wrongs",
+        JSON.stringify(wrongs)
+    );
 }
+
+async function loadQuestions() {
+    try {
+        const response = await fetch("./questions.json");
+
+        if (!response.ok) {
+            throw new Error("문제 파일을 찾을 수 없습니다.");
+        }
+
+        questions = await response.json();
+
+        if (!Array.isArray(questions)) {
+            throw new Error("문제 데이터 형식이 올바르지 않습니다.");
+        }
+
+        render();
+
+    } catch (error) {
+        document.getElementById("quiz").innerHTML =
+            `<div class="empty">
+                문제를 불러오지 못했습니다.<br><br>
+                questions.json 파일이 index.html과
+                같은 폴더에 있는지 확인해 주세요.
+            </div>`;
+
+        console.error(error);
+    }
+}
+
+function getList() {
+    if (mode === "favorite") {
+        return questions.filter(q =>
+            favorites.includes(q.id)
+        );
+    }
+
+    if (mode === "wrong") {
+        return questions.filter(q =>
+            wrongs.includes(q.id)
+        );
+    }
+
+    return questions;
+}
+
+function render() {
+    const list = getList();
+
+    document.querySelectorAll(".tab").forEach(tab => {
+        tab.classList.toggle(
+            "active",
+            tab.dataset.mode === mode
+        );
+    });
+
+    const quiz = document.getElementById("quiz");
+
+    if (list.length === 0) {
+        quiz.innerHTML = `
+            <div class="empty">
+                ${mode === "favorite"
+                    ? "즐겨찾기한 문제가 없습니다."
+                    : mode === "wrong"
+                    ? "저장된 오답이 없습니다."
+                    : "문제가 없습니다."}
+            </div>
+        `;
+
+        updateProgress(0,0);
+        return;
+    }
+
+    if (index >= list.length) index = list.length - 1;
+
+    const q = list[index];
+
+    selected = null;
+    submitted = false;
+
+    updateProgress(index + 1, list.length);
+
+    let html = `
+        <div class="question-top">
+            <span class="question-number">
+                QUESTION ${q.number}
+            </span>
+
+            <button
+                class="star ${favorites.includes(q.id) ? "active" : ""}"
+                onclick="toggleFavorite('${q.id}')">
+                ★
+            </button>
+        </div>
+
+        <div class="question">${q.question}</div>
+    `;
+
+    if (q.type === "choice") {
+        html += `<div class="options">`;
+
+        q.options.forEach((option, i) => {
+            html += `
+                <button class="option"
+                    data-index="${i}"
+                    onclick="selectChoice(${i})">
+                    <span class="option-label">
+                        ${i + 1}
+                    </span>
+                    ${option}
+                </button>
+            `;
+        });
+
+        html += `</div>`;
+    }
+
+    if (q.type === "multi") {
+        html += `<div class="options">`;
+
+        q.options.forEach((option, i) => {
+            html += `
+                <button class="option"
+                    data-index="${i}"
+                    onclick="toggleMulti(${i})">
+                    <span class="option-label">
+                        ${i + 1}
+                    </span>
+                    ${option}
+                </button>
+            `;
+        });
+
+        html += `</div>`;
+        html += `<p style="color:#718097;font-size:13px">
+            정답을 모두 선택하세요.
+        </p>`;
+    }
+
+    if (q.type === "fill") {
+        html += `<div class="fill-area">`;
+
+        q.answers.forEach((answer, i) => {
+            const length = Array.from(
+                answer.replace(/\s/g, "")
+            ).length;
+
+            html += `
+                <div class="fill-item">
+                    <span>${i + 1}.</span>
+                    <input
+                        class="blank-input"
+                        type="text"
+                        autocomplete="off"
+                        placeholder="정답 입력">
+                    <span class="fill-length">
+                        ${length}글자
+                    </span>
+                </div>
+            `;
+        });
+
+        html += `</div>`;
+    }
+
+    if (q.type === "short") {
+        html += `
+            <div class="fill-area">
+                <input id="shortAnswer"
+                    type="text"
+                    placeholder="정답 입력"
+                    style="padding:13px;border:1px solid #ccd7e5;border-radius:8px;font-size:16px">
+            </div>
+        `;
+    }
+
+    if (q.type === "ox") {
+        html += `
+            <div class="ox-area">
+                <button class="ox-button"
+                    onclick="selectOX(true)">O</button>
+
+                <button class="ox-button"
+                    onclick="selectOX(false)">X</button>
+            </div>
+        `;
+    }
+
+    html += `
+        <div class="feedback" id="feedback"></div>
+
+        <div class="buttons">
+            <button class="action next"
+                onclick="move(-1)"
+                ${index === 0 ? "disabled" : ""}>
+                이전
+            </button>
+
+            <button class="action check"
+                id="checkButton"
+                onclick="checkAnswer()">
+                정답 확인
+            </button>
+
+            <button class="action next"
+                onclick="move(1)"
+                ${index === list.length - 1 ? "disabled" : ""}>
+                다음
+            </button>
+        </div>
+    `;
+
+    quiz.innerHTML = html;
+}
+
+function updateProgress(current, total) {
+    document.getElementById("progress-label").textContent =
+        mode === "favorite" ? "즐겨찾기 문제" :
+        mode === "wrong" ? "오답 노트" :
+        "전체 문제";
+
+    document.getElementById("progress-count").textContent =
+        total ? `${current} / ${total}` : "0문제";
+
+    document.getElementById("progress-bar").style.width =
+        total ? `${current / total * 100}%` : "0%";
+}
+
+function selectChoice(i) {
+    if (submitted) return;
+
+    selected = i;
+
+    document.querySelectorAll(".option").forEach(btn => {
+        btn.classList.toggle(
+            "selected",
+            Number(btn.dataset.index) === i
+        );
+    });
+}
+
+function toggleMulti(i) {
+    if (submitted) return;
+
+    if (!Array.isArray(selected)) selected = [];
+
+    if (selected.includes(i)) {
+        selected = selected.filter(v => v !== i);
+    } else {
+        selected.push(i);
+    }
+
+    document.querySelectorAll(".option").forEach(btn => {
+        btn.classList.toggle(
+            "selected",
+            selected.includes(Number(btn.dataset.index))
+        );
+    });
+}
+
+function selectOX(value) {
+    if (submitted) return;
+
+    selected = value;
+
+    document.querySelectorAll(".ox-button").forEach(btn => {
+        btn.classList.toggle(
+            "selected",
+            (btn.textContent === "O") === value
+        );
+    });
+}
+
+function normalize(value) {
+    return String(value)
+        .normalize("NFC")
+        .toLowerCase()
+        .replace(/[\s.,!?·]/g, "");
+}
+
+function checkAnswer() {
+    if (submitted) return;
+
+    const list = getList();
+    const q = list[index];
+
+    let correct = false;
+    let userAnswer = "";
+
+    if (q.type === "choice") {
+        if (selected === null) {
+            alert("답을 선택해 주세요.");
+            return;
+        }
+
+        correct = selected === q.answer;
+        userAnswer = q.options[selected];
+    }
+
+    if (q.type === "multi") {
+        if (!Array.isArray(selected) || selected.length === 0) {
+            alert("답을 선택해 주세요.");
+            return;
+        }
+
+        const a = [...selected].sort();
+        const b = [...q.answer].sort();
+
+        correct =
+            JSON.stringify(a) === JSON.stringify(b);
+
+        userAnswer = selected.map(i => q.options[i]).join(", ");
+    }
+
+    if (q.type === "fill") {
+        const inputs = [
+            ...document.querySelectorAll(".blank-input")
+        ];
+
+        const values = inputs.map(input => input.value.trim());
+
+        if (values.some(v => !v)) {
+            alert("모든 빈칸에 답을 입력해 주세요.");
+            return;
+        }
+
+        const normalizeFill = v =>
+            normalize(v).replace(/[()]/g, "");
+
+        const a = values.map(normalizeFill);
+        const b = q.answers.map(normalizeFill);
+
+        if (q.orderMatters === false) {
+            correct =
+                JSON.stringify([...a].sort()) ===
+                JSON.stringify([...b].sort());
+        } else {
+            correct =
+                JSON.stringify(a) === JSON.stringify(b);
+        }
+
+        userAnswer = values.join(", ");
+    }
+
+    if (q.type === "short") {
+        const input = document.getElementById("shortAnswer");
+        const value = input.value.trim();
+
+        if (!value) {
+            alert("정답을 입력해 주세요.");
+            return;
+        }
+
+        correct = q.acceptedAnswers.some(answer =>
+            normalize(answer) === normalize(value)
+        );
+
+        userAnswer = value;
+    }
+
+    if (q.type === "ox") {
+        if (selected === null) {
+            alert("O 또는 X를 선택해 주세요.");
+            return;
+        }
+
+        correct = selected === q.answer;
+        userAnswer = selected ? "O" : "X";
+    }
+
+    submitted = true;
+
+    if (correct) {
+        wrongs = wrongs.filter(id => id !== q.id);
+    } else {
+        if (!wrongs.includes(q.id)) {
+            wrongs.push(q.id);
+        }
+    }
+
+    saveData();
+
+    const feedback = document.getElementById("feedback");
+
+    feedback.className =
+        "feedback show " + (correct ? "good" : "bad");
+
+    let answerText = "";
+
+    if (q.type === "choice") {
+        answerText = q.options[q.answer];
+    }
+
+    if (q.type === "multi") {
+        answerText = q.answer.map(i => q.options[i]).join(", ");
+    }
+
+    if (q.type === "fill") {
+        answerText = q.answers.join(", ");
+    }
+
+    if (q.type === "short") {
+        answerText = q.acceptedAnswers[0];
+    }
+
+    if (q.type === "ox") {
+        answerText = q.answer ? "O" : "X";
+    }
+
+    feedback.innerHTML = `
+        <strong>
+            ${correct ? "정답입니다!" : "아쉽지만 오답입니다."}
+        </strong>
+
+        <div class="answer-text">
+            정답: ${answerText}
+        </div>
+
+        ${q.explanation ? `
+            <div class="explanation">
+                ${q.explanation}
+            </div>
+        ` : ""}
+    `;
+
+    document.getElementById("checkButton").textContent =
+        "확인 완료";
+
+    document.getElementById("checkButton").disabled = true;
+
+    document.querySelectorAll(".option").forEach(btn => {
+        btn.disabled = true;
+
+        const i = Number(btn.dataset.index);
+
+        if (q.type === "choice" && i === q.answer) {
+            btn.classList.add("correct");
+        }
+
+        if (q.type === "multi" && q.answer.includes(i)) {
+            btn.classList.add("correct");
+        }
+
+        if (q.type === "choice" && selected === i && !correct) {
+            btn.classList.add("wrong");
+        }
+    });
+}
+
+function toggleFavorite(id) {
+    if (favorites.includes(id)) {
+        favorites = favorites.filter(v => v !== id);
+    } else {
+        favorites.push(id);
+    }
+
+    saveData();
+    render();
+}
+
+function move(direction) {
+    const list = getList();
+
+    const nextIndex = index + direction;
+
+    if (nextIndex < 0 || nextIndex >= list.length) return;
+
+    index = nextIndex;
+    render();
+}
+
+document.querySelectorAll(".tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+        mode = tab.dataset.mode;
+        index = 0;
+        render();
+    });
+});
+
+function openLogin() {
+    document.getElementById("loginModal").classList.add("show");
+}
+
+function closeLogin() {
+    document.getElementById("loginModal").classList.remove("show");
+}
+
+loadQuestions();
 
 </script>
 
