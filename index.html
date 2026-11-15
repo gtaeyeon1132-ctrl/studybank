@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>스터디뱅크</title>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
 * {
     box-sizing: border-box;
@@ -345,6 +347,12 @@ footer {
     cursor: pointer;
 }
 
+#authStatus {
+    margin-top: 10px;
+    font-size: 13px;
+    color: #718097;
+}
+
 .modal {
     display: none;
     position: fixed;
@@ -353,6 +361,7 @@ footer {
     justify-content: center;
     align-items: center;
     padding: 20px;
+    z-index: 1000;
 }
 
 .modal.show {
@@ -376,26 +385,10 @@ footer {
     color: white;
     border-radius: 7px;
     margin-top: 15px;
+    cursor: pointer;
 }
 
-@media(max-width:600px) {
-    main {
-        margin-top: 20px;
-    }
-
-    .card {
-        padding: 19px;
-    }
-
-    .question {
-        font-size: 17px;
-    }
-
-    .option {
-        font-size: 14px;
-        padding: 13px;
-    }
-}.auth-label {
+.auth-label {
     display: block;
     text-align: left;
     margin: 15px 0;
@@ -427,6 +420,25 @@ footer {
     color: #d14b4b;
     min-height: 18px;
 }
+
+@media(max-width:600px) {
+    main {
+        margin-top: 20px;
+    }
+
+    .card {
+        padding: 19px;
+    }
+
+    .question {
+        font-size: 17px;
+    }
+
+    .option {
+        font-size: 14px;
+        padding: 13px;
+    }
+}
 </style>
 </head>
 
@@ -457,6 +469,7 @@ footer {
             <span id="progress-label">문제 불러오는 중</span>
             <span id="progress-count"></span>
         </div>
+
         <div class="progress">
             <div class="progress-bar" id="progress-bar"></div>
         </div>
@@ -471,11 +484,19 @@ footer {
 <footer>
     STUDY BANK · 함께 공부하는 학습 공간
     <br>
-    <button class="login-button" onclick="openLogin()">로그인</button>
+
+    <button class="login-button" onclick="handleAuthButton()">
+        로그인
+    </button>
+
+    <div id="authStatus">
+        로그인하면 학습 기록이 저장됩니다.
+    </div>
 </footer>
 
 <div class="modal" id="loginModal">
     <div class="modal-content">
+
         <h3 id="authTitle">로그인</h3>
 
         <label class="auth-label">
@@ -515,6 +536,7 @@ footer {
         <button onclick="closeLogin()" class="auth-cancel">
             닫기
         </button>
+
     </div>
 </div>
 
@@ -543,47 +565,89 @@ let authMode = "login";
 let favorites = [];
 let wrongs = [];
 
-async function loadUserData() {
-    if (currentUser) {
-        favorites = [];
-        wrongs = [];
+function getCacheKey() {
+    return currentUser ? currentUser.id : "guest";
+}
 
-        const { data, error } = await supabaseClient
-            .from("user_question_state")
-            .select("question_id,favorite,wrong");
+function readArray(key, fallback) {
+    try {
+        const value = JSON.parse(
+            localStorage.getItem(key) || "null"
+        );
 
-        if (error) {
-            console.error(error);
-            return;
-        }
+        return Array.isArray(value)
+            ? value.map(String)
+            : fallback;
 
-        data.forEach(item => {
-            if (item.favorite) {
-                favorites.push(String(item.question_id));
-            }
-
-            if (item.wrong) {
-                wrongs.push(String(item.question_id));
-            }
-        });
-
-    } else {
-        favorites = JSON.parse(
-            localStorage.getItem("sb_favorites_guest") ||
-            localStorage.getItem("sb_favorites") ||
-            "[]"
-        ).map(String);
-
-        wrongs = JSON.parse(
-            localStorage.getItem("sb_wrongs_guest") ||
-            localStorage.getItem("sb_wrongs") ||
-            "[]"
-        ).map(String);
+    } catch {
+        return fallback;
     }
 }
 
-async function saveData(questionId) {
-    const suffix = currentUser ? currentUser.id : "guest";
+async function loadUserData() {
+
+    const suffix = getCacheKey();
+
+    if (currentUser) {
+
+        const { data, error } = await supabaseClient
+            .from("studybank_progress")
+            .select("favorites,wrongs")
+            .eq("user_id", currentUser.id)
+            .maybeSingle();
+
+        if (error) {
+            console.error("학습 기록 불러오기 오류:", error);
+
+            favorites = readArray(
+                `sb_favorites_${suffix}`, []
+            );
+
+            wrongs = readArray(
+                `sb_wrongs_${suffix}`, []
+            );
+
+            return;
+        }
+
+        if (data) {
+
+            favorites = Array.isArray(data.favorites)
+                ? data.favorites.map(String)
+                : [];
+
+            wrongs = Array.isArray(data.wrongs)
+                ? data.wrongs.map(String)
+                : [];
+
+        } else {
+
+            favorites = readArray(
+                `sb_favorites_${suffix}`, []
+            );
+
+            wrongs = readArray(
+                `sb_wrongs_${suffix}`, []
+            );
+        }
+
+    } else {
+
+        favorites = readArray(
+            "sb_favorites_guest",
+            readArray("sb_favorites", [])
+        );
+
+        wrongs = readArray(
+            "sb_wrongs_guest",
+            readArray("sb_wrongs", [])
+        );
+    }
+}
+
+async function saveData() {
+
+    const suffix = getCacheKey();
 
     localStorage.setItem(
         `sb_favorites_${suffix}`,
@@ -595,50 +659,69 @@ async function saveData(questionId) {
         JSON.stringify(wrongs)
     );
 
-    if (!currentUser || !questionId) return;
+    if (!currentUser) return;
 
     const { error } = await supabaseClient
-        .from("user_question_state")
+        .from("studybank_progress")
         .upsert({
+
             user_id: currentUser.id,
-            question_id: String(questionId),
-            favorite: favorites.includes(String(questionId)),
-            wrong: wrongs.includes(String(questionId)),
+
+            favorites: favorites,
+
+            wrongs: wrongs,
+
             updated_at: new Date().toISOString()
+
         }, {
-            onConflict: "user_id,question_id"
+            onConflict: "user_id"
         });
 
     if (error) {
+
         console.error("학습 기록 저장 오류:", error);
+
+        const status = document.getElementById("authStatus");
+
+        if (status) {
+            status.textContent =
+                "서버 저장에 실패했습니다. 다시 확인해 주세요.";
+        }
+
+    } else {
+        updateAuthUI();
     }
 }
 
 function updateAuthUI() {
+
     const button = document.querySelector(".login-button");
+
     const status = document.getElementById("authStatus");
 
     if (currentUser) {
+
         const username =
             currentUser.user_metadata?.username || "회원";
 
         button.textContent = "로그아웃";
 
-        if (status) {
-            status.textContent = `${username}님 로그인 중`;
-        }
+        status.textContent =
+            `${username}님 로그인 중`;
 
     } else {
+
         button.textContent = "로그인";
 
-        if (status) {
-            status.textContent = "로그인하면 학습 기록이 저장됩니다.";
-        }
+        status.textContent =
+            "로그인하면 학습 기록이 저장됩니다.";
     }
 }
 
 async function loadQuestions() {
+
     try {
+
         const response = await fetch("./questions.json");
 
         if (!response.ok) {
@@ -654,27 +737,32 @@ async function loadQuestions() {
         render();
 
     } catch (error) {
-        document.getElementById("quiz").innerHTML =
-            `<div class="empty">
+
+        document.getElementById("quiz").innerHTML = `
+            <div class="empty">
                 문제를 불러오지 못했습니다.<br><br>
                 questions.json 파일이 index.html과
                 같은 폴더에 있는지 확인해 주세요.
-            </div>`;
+            </div>
+        `;
 
         console.error(error);
     }
 }
 
 function getList() {
+
     if (mode === "favorite") {
+
         return questions.filter(q =>
-            favorites.includes(q.id)
+            favorites.includes(String(q.id))
         );
     }
 
     if (mode === "wrong") {
+
         return questions.filter(q =>
-            wrongs.includes(q.id)
+            wrongs.includes(String(q.id))
         );
     }
 
@@ -682,18 +770,22 @@ function getList() {
 }
 
 function render() {
+
     const list = getList();
 
     document.querySelectorAll(".tab").forEach(tab => {
+
         tab.classList.toggle(
             "active",
             tab.dataset.mode === mode
         );
+
     });
 
     const quiz = document.getElementById("quiz");
 
     if (list.length === 0) {
+
         quiz.innerHTML = `
             <div class="empty">
                 ${mode === "favorite"
@@ -704,11 +796,14 @@ function render() {
             </div>
         `;
 
-        updateProgress(0,0);
+        updateProgress(0, 0);
+
         return;
     }
 
-    if (index >= list.length) index = list.length - 1;
+    if (index >= list.length) {
+        index = list.length - 1;
+    }
 
     const q = list[index];
 
@@ -719,32 +814,39 @@ function render() {
 
     let html = `
         <div class="question-top">
+
             <span class="question-number">
                 QUESTION ${q.number}
             </span>
 
             <button
-                class="star ${favorites.includes(q.id) ? "active" : ""}"
-                onclick="toggleFavorite('${q.id}')">
+                class="star ${favorites.includes(String(q.id)) ? "active" : ""}"
+                onclick='toggleFavorite(${JSON.stringify(String(q.id))})'>
                 ★
             </button>
+
         </div>
 
         <div class="question">${q.question}</div>
     `;
 
     if (q.type === "choice") {
+
         html += `<div class="options">`;
 
         q.options.forEach((option, i) => {
+
             html += `
                 <button class="option"
                     data-index="${i}"
                     onclick="selectChoice(${i})">
+
                     <span class="option-label">
                         ${i + 1}
                     </span>
+
                     ${option}
+
                 </button>
             `;
         });
@@ -753,46 +855,60 @@ function render() {
     }
 
     if (q.type === "multi") {
+
         html += `<div class="options">`;
 
         q.options.forEach((option, i) => {
+
             html += `
                 <button class="option"
                     data-index="${i}"
                     onclick="toggleMulti(${i})">
+
                     <span class="option-label">
                         ${i + 1}
                     </span>
+
                     ${option}
+
                 </button>
             `;
         });
 
         html += `</div>`;
-        html += `<p style="color:#718097;font-size:13px">
-            정답을 모두 선택하세요.
-        </p>`;
+
+        html += `
+            <p style="color:#718097;font-size:13px">
+                정답을 모두 선택하세요.
+            </p>
+        `;
     }
 
     if (q.type === "fill") {
+
         html += `<div class="fill-area">`;
 
         q.answers.forEach((answer, i) => {
+
             const length = Array.from(
                 answer.replace(/\s/g, "")
             ).length;
 
             html += `
                 <div class="fill-item">
+
                     <span>${i + 1}.</span>
+
                     <input
                         class="blank-input"
                         type="text"
                         autocomplete="off"
                         placeholder="정답 입력">
+
                     <span class="fill-length">
                         ${length}글자
                     </span>
+
                 </div>
             `;
         });
@@ -801,24 +917,30 @@ function render() {
     }
 
     if (q.type === "short") {
+
         html += `
             <div class="fill-area">
+
                 <input id="shortAnswer"
                     type="text"
                     placeholder="정답 입력"
                     style="padding:13px;border:1px solid #ccd7e5;border-radius:8px;font-size:16px">
+
             </div>
         `;
     }
 
     if (q.type === "ox") {
+
         html += `
             <div class="ox-area">
+
                 <button class="ox-button"
                     onclick="selectOX(true)">O</button>
 
                 <button class="ox-button"
                     onclick="selectOX(false)">X</button>
+
             </div>
         `;
     }
@@ -827,6 +949,7 @@ function render() {
         <div class="feedback" id="feedback"></div>
 
         <div class="buttons">
+
             <button class="action next"
                 onclick="move(-1)"
                 ${index === 0 ? "disabled" : ""}>
@@ -844,6 +967,7 @@ function render() {
                 ${index === list.length - 1 ? "disabled" : ""}>
                 다음
             </button>
+
         </div>
     `;
 
@@ -851,6 +975,7 @@ function render() {
 }
 
 function updateProgress(current, total) {
+
     document.getElementById("progress-label").textContent =
         mode === "favorite" ? "즐겨찾기 문제" :
         mode === "wrong" ? "오답 노트" :
@@ -864,92 +989,109 @@ function updateProgress(current, total) {
 }
 
 function selectChoice(i) {
+
     if (submitted) return;
 
     selected = i;
 
     document.querySelectorAll(".option").forEach(btn => {
+
         btn.classList.toggle(
             "selected",
             Number(btn.dataset.index) === i
         );
+
     });
 }
 
 function toggleMulti(i) {
+
     if (submitted) return;
 
-    if (!Array.isArray(selected)) selected = [];
+    if (!Array.isArray(selected)) {
+        selected = [];
+    }
 
     if (selected.includes(i)) {
+
         selected = selected.filter(v => v !== i);
+
     } else {
+
         selected.push(i);
     }
 
     document.querySelectorAll(".option").forEach(btn => {
+
         btn.classList.toggle(
             "selected",
             selected.includes(Number(btn.dataset.index))
         );
+
     });
 }
 
 function selectOX(value) {
+
     if (submitted) return;
 
     selected = value;
 
     document.querySelectorAll(".ox-button").forEach(btn => {
+
         btn.classList.toggle(
             "selected",
             (btn.textContent === "O") === value
         );
+
     });
 }
 
 function normalize(value) {
+
     return String(value)
         .normalize("NFC")
         .toLowerCase()
         .replace(/[\s.,!?·]/g, "");
 }
 
-function checkAnswer() {
+async function checkAnswer() {
+
     if (submitted) return;
 
     const list = getList();
+
     const q = list[index];
 
     let correct = false;
-    let userAnswer = "";
 
     if (q.type === "choice") {
+
         if (selected === null) {
             alert("답을 선택해 주세요.");
             return;
         }
 
         correct = selected === q.answer;
-        userAnswer = q.options[selected];
     }
 
     if (q.type === "multi") {
+
         if (!Array.isArray(selected) || selected.length === 0) {
             alert("답을 선택해 주세요.");
             return;
         }
 
         const a = [...selected].sort();
+
         const b = [...q.answer].sort();
 
         correct =
             JSON.stringify(a) === JSON.stringify(b);
-
-        userAnswer = selected.map(i => q.options[i]).join(", ");
     }
 
     if (q.type === "fill") {
+
         const inputs = [
             ...document.querySelectorAll(".blank-input")
         ];
@@ -965,22 +1107,26 @@ function checkAnswer() {
             normalize(v).replace(/[()]/g, "");
 
         const a = values.map(normalizeFill);
+
         const b = q.answers.map(normalizeFill);
 
         if (q.orderMatters === false) {
+
             correct =
                 JSON.stringify([...a].sort()) ===
                 JSON.stringify([...b].sort());
+
         } else {
+
             correct =
                 JSON.stringify(a) === JSON.stringify(b);
         }
-
-        userAnswer = values.join(", ");
     }
 
     if (q.type === "short") {
+
         const input = document.getElementById("shortAnswer");
+
         const value = input.value.trim();
 
         if (!value) {
@@ -991,31 +1137,36 @@ function checkAnswer() {
         correct = q.acceptedAnswers.some(answer =>
             normalize(answer) === normalize(value)
         );
-
-        userAnswer = value;
     }
 
     if (q.type === "ox") {
+
         if (selected === null) {
             alert("O 또는 X를 선택해 주세요.");
             return;
         }
 
         correct = selected === q.answer;
-        userAnswer = selected ? "O" : "X";
     }
 
     submitted = true;
 
+    const questionId = String(q.id);
+
     if (correct) {
-        wrongs = wrongs.filter(id => id !== q.id);
+
+        wrongs = wrongs.filter(id =>
+            id !== questionId
+        );
+
     } else {
-        if (!wrongs.includes(q.id)) {
-            wrongs.push(q.id);
+
+        if (!wrongs.includes(questionId)) {
+            wrongs.push(questionId);
         }
     }
 
-    saveData();
+    await saveData();
 
     const feedback = document.getElementById("feedback");
 
@@ -1066,6 +1217,7 @@ function checkAnswer() {
     document.getElementById("checkButton").disabled = true;
 
     document.querySelectorAll(".option").forEach(btn => {
+
         btn.disabled = true;
 
         const i = Number(btn.dataset.index);
@@ -1084,46 +1236,311 @@ function checkAnswer() {
     });
 }
 
-function toggleFavorite(id) {
+async function toggleFavorite(id) {
+
+    id = String(id);
+
     if (favorites.includes(id)) {
+
         favorites = favorites.filter(v => v !== id);
+
     } else {
+
         favorites.push(id);
     }
 
-    saveData();
+    await saveData();
+
     render();
 }
 
 function move(direction) {
+
     const list = getList();
 
     const nextIndex = index + direction;
 
-    if (nextIndex < 0 || nextIndex >= list.length) return;
+    if (nextIndex < 0 || nextIndex >= list.length) {
+        return;
+    }
 
     index = nextIndex;
+
     render();
 }
 
 document.querySelectorAll(".tab").forEach(tab => {
+
     tab.addEventListener("click", () => {
+
         mode = tab.dataset.mode;
+
         index = 0;
+
         render();
     });
 });
 
 function openLogin() {
-    document.getElementById("loginModal").classList.add("show");
+
+    setAuthMode("login");
+
+    document.getElementById("loginModal")
+        .classList.add("show");
 }
 
 function closeLogin() {
-    document.getElementById("loginModal").classList.remove("show");
+
+    document.getElementById("loginModal")
+        .classList.remove("show");
 }
 
-loadQuestions();
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+function setAuthMode(mode) {
+
+    authMode = mode;
+
+    document.getElementById("authTitle").textContent =
+        mode === "login" ? "로그인" : "회원가입";
+
+    document.getElementById("authSubmit").textContent =
+        mode === "login" ? "로그인" : "가입하기";
+
+    document.getElementById("authSwitch").textContent =
+        mode === "login"
+        ? "회원가입하기"
+        : "로그인으로 돌아가기";
+
+    document.getElementById("confirmPasswordWrap").hidden =
+        mode === "login";
+
+    document.getElementById("authMessage").textContent = "";
+
+    document.getElementById("authPassword").value = "";
+
+    document.getElementById("authPasswordConfirm").value = "";
+}
+
+function toggleAuthMode() {
+
+    setAuthMode(
+        authMode === "login" ? "signup" : "login"
+    );
+}
+
+async function submitAuth() {
+
+    const username = document.getElementById("authUsername")
+        .value.trim().toLowerCase();
+
+    const password = document.getElementById("authPassword")
+        .value;
+
+    const message = document.getElementById("authMessage");
+
+    const submitButton = document.getElementById("authSubmit");
+
+    if (!/^[a-z0-9_]{3,20}$/.test(username)) {
+
+        message.textContent =
+            "아이디는 영문 소문자, 숫자, _를 사용해 3~20자로 입력해 주세요.";
+
+        return;
+    }
+
+    if (password.length < 8) {
+
+        message.textContent =
+            "비밀번호는 8자 이상 입력해 주세요.";
+
+        return;
+    }
+
+    const email = `${username}@studybank.example.com`;
+
+    submitButton.disabled = true;
+
+    try {
+
+        if (authMode === "signup") {
+
+            const confirm = document.getElementById(
+                "authPasswordConfirm"
+            ).value;
+
+            if (password !== confirm) {
+
+                message.textContent =
+                    "비밀번호가 일치하지 않습니다.";
+
+                return;
+            }
+
+            const { data, error } =
+                await supabaseClient.auth.signUp({
+
+                    email: email,
+
+                    password: password,
+
+                    options: {
+                        data: {
+                            username: username
+                        }
+                    }
+
+                });
+
+            if (error) {
+
+                message.textContent =
+                    error.message;
+
+                return;
+            }
+
+            if (!data.session) {
+
+                message.textContent =
+                    "이메일 확인이 활성화되어 있습니다. Supabase에서 이메일 확인을 꺼 주세요.";
+
+                return;
+            }
+
+            currentUser = data.user;
+
+            await loadUserData();
+
+            updateAuthUI();
+
+            closeLogin();
+
+            render();
+
+            alert("회원가입이 완료되었습니다!");
+
+        } else {
+
+            const { data, error } =
+                await supabaseClient.auth.signInWithPassword({
+
+                    email: email,
+
+                    password: password
+
+                });
+
+            if (error) {
+
+                message.textContent =
+                    "아이디 또는 비밀번호를 확인해 주세요.";
+
+                return;
+            }
+
+            currentUser = data.user;
+
+            await loadUserData();
+
+            updateAuthUI();
+
+            closeLogin();
+
+            render();
+        }
+
+    } catch (error) {
+
+        console.error(error);
+
+        message.textContent =
+            "오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+
+    } finally {
+
+        submitButton.disabled = false;
+    }
+}
+
+async function handleAuthButton() {
+
+    if (currentUser) {
+
+        const { error } =
+            await supabaseClient.auth.signOut();
+
+        if (error) {
+
+            alert("로그아웃에 실패했습니다.");
+
+            return;
+        }
+
+        currentUser = null;
+
+        await loadUserData();
+
+        updateAuthUI();
+
+        render();
+
+    } else {
+
+        openLogin();
+    }
+}
+
+supabaseClient.auth.onAuthStateChange(
+    (event, session) => {
+
+        setTimeout(async () => {
+
+            const nextUser = session?.user || null;
+
+            const previousId = currentUser?.id || null;
+
+            const nextId = nextUser?.id || null;
+
+            currentUser = nextUser;
+
+            if (previousId !== nextId) {
+
+                await loadUserData();
+
+                updateAuthUI();
+
+                if (questions.length) {
+                    render();
+                }
+
+            } else {
+
+                updateAuthUI();
+            }
+
+        }, 0);
+    }
+);
+
+async function initApp() {
+
+    const { data, error } =
+        await supabaseClient.auth.getSession();
+
+    if (error) {
+        console.error(error);
+    }
+
+    currentUser = data.session?.user || null;
+
+    await loadUserData();
+
+    updateAuthUI();
+
+    await loadQuestions();
+}
+
+initApp();
+
 </script>
 
 </body>
