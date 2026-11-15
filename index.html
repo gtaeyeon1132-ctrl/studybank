@@ -542,6 +542,10 @@ footer {
 
 <script>
 
+// ==================================
+// 1. SUPABASE 연결
+// ==================================
+
 const SUPABASE_URL =
 "https://tcrejtavxvyyokbfwyzl.supabase.co";
 
@@ -552,6 +556,11 @@ const supabaseClient = window.supabase.createClient(
     SUPABASE_URL,
     SUPABASE_KEY
 );
+
+
+// ==================================
+// 2. 기본 변수
+// ==================================
 
 let questions = [];
 let mode = "all";
@@ -564,6 +573,11 @@ let authMode = "login";
 
 let favorites = [];
 let wrongs = [];
+
+
+// ==================================
+// 3. 로컬 저장 기능
+// ==================================
 
 function getCacheKey() {
     return currentUser ? currentUser.id : "guest";
@@ -584,6 +598,11 @@ function readArray(key, fallback) {
     }
 }
 
+
+// ==================================
+// 4. 학습 기록 불러오기
+// ==================================
+
 async function loadUserData() {
 
     const suffix = getCacheKey();
@@ -591,13 +610,16 @@ async function loadUserData() {
     if (currentUser) {
 
         const { data, error } = await supabaseClient
-            .from("studybank_progress")
-            .select("favorites,wrongs")
-            .eq("user_id", currentUser.id)
-            .maybeSingle();
+            .from("user_question_state")
+            .select("question_id,favorite,wrong")
+            .eq("user_id", currentUser.id);
 
         if (error) {
-            console.error("학습 기록 불러오기 오류:", error);
+
+            console.error(
+                "학습 기록 불러오기 오류:",
+                error
+            );
 
             favorites = readArray(
                 `sb_favorites_${suffix}`, []
@@ -610,26 +632,20 @@ async function loadUserData() {
             return;
         }
 
-        if (data) {
+        favorites = [];
+        wrongs = [];
 
-            favorites = Array.isArray(data.favorites)
-                ? data.favorites.map(String)
-                : [];
+        data.forEach(item => {
 
-            wrongs = Array.isArray(data.wrongs)
-                ? data.wrongs.map(String)
-                : [];
+            if (item.favorite) {
+                favorites.push(String(item.question_id));
+            }
 
-        } else {
+            if (item.wrong) {
+                wrongs.push(String(item.question_id));
+            }
 
-            favorites = readArray(
-                `sb_favorites_${suffix}`, []
-            );
-
-            wrongs = readArray(
-                `sb_wrongs_${suffix}`, []
-            );
-        }
+        });
 
     } else {
 
@@ -645,7 +661,12 @@ async function loadUserData() {
     }
 }
 
-async function saveData() {
+
+// ==================================
+// 5. 학습 기록 저장하기
+// ==================================
+
+async function saveData(questionId) {
 
     const suffix = getCacheKey();
 
@@ -659,45 +680,53 @@ async function saveData() {
         JSON.stringify(wrongs)
     );
 
-    if (!currentUser) return;
+    if (!currentUser || questionId == null) {
+        return;
+    }
+
+    questionId = String(questionId);
 
     const { error } = await supabaseClient
-        .from("studybank_progress")
+        .from("user_question_state")
         .upsert({
 
             user_id: currentUser.id,
 
-            favorites: favorites,
+            question_id: questionId,
 
-            wrongs: wrongs,
+            favorite: favorites.includes(questionId),
 
-            updated_at: new Date().toISOString()
+            wrong: wrongs.includes(questionId)
 
         }, {
-            onConflict: "user_id"
+            onConflict: "user_id,question_id"
         });
 
     if (error) {
 
-        console.error("학습 기록 저장 오류:", error);
+        console.error(
+            "학습 기록 저장 오류:",
+            error
+        );
 
-        const status = document.getElementById("authStatus");
+        document.getElementById("authStatus").textContent =
+            "저장에 실패했습니다. Supabase 설정을 확인해 주세요.";
 
-        if (status) {
-            status.textContent =
-                "서버 저장에 실패했습니다. 다시 확인해 주세요.";
-        }
-
-    } else {
-        updateAuthUI();
     }
 }
 
+
+// ==================================
+// 6. 로그인 상태 표시
+// ==================================
+
 function updateAuthUI() {
 
-    const button = document.querySelector(".login-button");
+    const button =
+        document.querySelector(".login-button");
 
-    const status = document.getElementById("authStatus");
+    const status =
+        document.getElementById("authStatus");
 
     if (currentUser) {
 
@@ -717,6 +746,11 @@ function updateAuthUI() {
             "로그인하면 학습 기록이 저장됩니다.";
     }
 }
+
+
+// ==================================
+// 7. 문제 불러오기
+// ==================================
 
 async function loadQuestions() {
 
@@ -750,6 +784,11 @@ async function loadQuestions() {
     }
 }
 
+
+// ==================================
+// 8. 문제 목록 가져오기
+// ==================================
+
 function getList() {
 
     if (mode === "favorite") {
@@ -768,6 +807,11 @@ function getList() {
 
     return questions;
 }
+
+
+// ==================================
+// 9. 문제 화면 표시
+// ==================================
 
 function render() {
 
@@ -974,6 +1018,11 @@ function render() {
     quiz.innerHTML = html;
 }
 
+
+// ==================================
+// 10. 진행률 표시
+// ==================================
+
 function updateProgress(current, total) {
 
     document.getElementById("progress-label").textContent =
@@ -987,6 +1036,11 @@ function updateProgress(current, total) {
     document.getElementById("progress-bar").style.width =
         total ? `${current / total * 100}%` : "0%";
 }
+
+
+// ==================================
+// 11. 객관식 선택
+// ==================================
 
 function selectChoice(i) {
 
@@ -1003,6 +1057,11 @@ function selectChoice(i) {
 
     });
 }
+
+
+// ==================================
+// 12. 복수 정답 선택
+// ==================================
 
 function toggleMulti(i) {
 
@@ -1031,6 +1090,11 @@ function toggleMulti(i) {
     });
 }
 
+
+// ==================================
+// 13. OX 선택
+// ==================================
+
 function selectOX(value) {
 
     if (submitted) return;
@@ -1047,6 +1111,11 @@ function selectOX(value) {
     });
 }
 
+
+// ==================================
+// 14. 정답 비교
+// ==================================
+
 function normalize(value) {
 
     return String(value)
@@ -1054,6 +1123,11 @@ function normalize(value) {
         .toLowerCase()
         .replace(/[\s.,!?·]/g, "");
 }
+
+
+// ==================================
+// 15. 정답 확인 및 오답 저장
+// ==================================
 
 async function checkAnswer() {
 
@@ -1166,7 +1240,7 @@ async function checkAnswer() {
         }
     }
 
-    await saveData();
+    await saveData(questionId);
 
     const feedback = document.getElementById("feedback");
 
@@ -1236,6 +1310,11 @@ async function checkAnswer() {
     });
 }
 
+
+// ==================================
+// 16. 즐겨찾기 저장
+// ==================================
+
 async function toggleFavorite(id) {
 
     id = String(id);
@@ -1249,10 +1328,15 @@ async function toggleFavorite(id) {
         favorites.push(id);
     }
 
-    await saveData();
+    await saveData(id);
 
     render();
 }
+
+
+// ==================================
+// 17. 문제 이동
+// ==================================
 
 function move(direction) {
 
@@ -1269,6 +1353,11 @@ function move(direction) {
     render();
 }
 
+
+// ==================================
+// 18. 탭 전환
+// ==================================
+
 document.querySelectorAll(".tab").forEach(tab => {
 
     tab.addEventListener("click", () => {
@@ -1280,6 +1369,11 @@ document.querySelectorAll(".tab").forEach(tab => {
         render();
     });
 });
+
+
+// ==================================
+// 19. 로그인 창
+// ==================================
 
 function openLogin() {
 
@@ -1326,6 +1420,11 @@ function toggleAuthMode() {
         authMode === "login" ? "signup" : "login"
     );
 }
+
+
+// ==================================
+// 20. 회원가입 및 로그인
+// ==================================
 
 async function submitAuth() {
 
@@ -1401,7 +1500,7 @@ async function submitAuth() {
             if (!data.session) {
 
                 message.textContent =
-                    "이메일 확인이 활성화되어 있습니다. Supabase에서 이메일 확인을 꺼 주세요.";
+                    "이메일 확인이 활성화되어 있습니다. Supabase의 이메일 확인 설정을 확인해 주세요.";
 
                 return;
             }
@@ -1461,6 +1560,11 @@ async function submitAuth() {
     }
 }
 
+
+// ==================================
+// 21. 로그아웃
+// ==================================
+
 async function handleAuthButton() {
 
     if (currentUser) {
@@ -1488,6 +1592,11 @@ async function handleAuthButton() {
         openLogin();
     }
 }
+
+
+// ==================================
+// 22. 로그인 상태 자동 확인
+// ==================================
 
 supabaseClient.auth.onAuthStateChange(
     (event, session) => {
@@ -1520,6 +1629,11 @@ supabaseClient.auth.onAuthStateChange(
         }, 0);
     }
 );
+
+
+// ==================================
+// 23. 앱 시작
+// ==================================
 
 async function initApp() {
 
