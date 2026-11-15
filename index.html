@@ -321,7 +321,62 @@ main {
     opacity: .45;
     cursor: default;
 }
+/* 문제 번호 바로가기 */
 
+.question-nav {
+    background: white;
+    border: 1px solid #e5eaf2;
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 18px;
+}
+
+.question-nav-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    font-size: 14px;
+}
+
+.question-nav-title span {
+    color: #8491a3;
+    font-size: 12px;
+}
+
+.question-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 8px;
+}
+
+.question-jump {
+    padding: 10px 5px;
+    border: 1px solid #dce4ef;
+    background: white;
+    color: #61718a;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.question-jump:hover {
+    background: #edf4ff;
+    border-color: #4789e8;
+}
+
+.question-jump.active {
+    background: #3978cf;
+    color: white;
+    border-color: #3978cf;
+    font-weight: bold;
+}
+
+@media(max-width:600px) {
+    .question-grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
 .empty {
     text-align: center;
     padding: 65px 15px;
@@ -474,7 +529,17 @@ footer {
             <div class="progress-bar" id="progress-bar"></div>
         </div>
     </div>
+<section class="question-nav">
 
+    <div class="question-nav-title">
+        <strong>문제 바로가기</strong>
+        <span>번호를 누르면 해당 문제로 이동합니다.</span>
+    </div>
+
+    <div class="question-grid" id="questionNav">
+    </div>
+
+</section>
     <section class="card" id="quiz">
         문제를 불러오는 중입니다.
     </section>
@@ -827,7 +892,7 @@ function render() {
     });
 
     const quiz = document.getElementById("quiz");
-
+renderQuestionNav(list);
     if (list.length === 0) {
 
         quiz.innerHTML = `
@@ -850,7 +915,7 @@ function render() {
     }
 
     const q = list[index];
-
+renderQuestionNav(list);
     selected = null;
     submitted = false;
 
@@ -1036,7 +1101,50 @@ function updateProgress(current, total) {
     document.getElementById("progress-bar").style.width =
         total ? `${current / total * 100}%` : "0%";
 }
+// ==================================
+// 문제 번호 바로가기
+// ==================================
 
+function renderQuestionNav(list) {
+
+    const nav = document.getElementById("questionNav");
+
+    if (!list.length) {
+        nav.innerHTML = "";
+        return;
+    }
+
+    nav.innerHTML = list.map((q, i) => `
+
+        <button
+            class="question-jump ${i === index ? "active" : ""}"
+            onclick="jumpToQuestion(${i})">
+
+            ${q.number}
+
+        </button>
+
+    `).join("");
+}
+
+
+function jumpToQuestion(targetIndex) {
+
+    const list = getList();
+
+    if (targetIndex < 0 || targetIndex >= list.length) {
+        return;
+    }
+
+    index = targetIndex;
+
+    render();
+
+    document.getElementById("quiz").scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
+}
 
 // ==================================
 // 11. 객관식 선택
@@ -1156,9 +1264,7 @@ async function checkAnswer() {
             return;
         }
 
-        const a = [...selected].sort();
-
-        const b = [...q.answer].sort();
+        const a = [...selected].sort(     const b = [...q.answer].sort();
 
         correct =
             JSON.stringify(a) === JSON.stringify(b);
