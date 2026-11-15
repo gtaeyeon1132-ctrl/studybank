@@ -395,6 +395,37 @@ footer {
         font-size: 14px;
         padding: 13px;
     }
+}.auth-label {
+    display: block;
+    text-align: left;
+    margin: 15px 0;
+    font-size: 14px;
+}
+
+.auth-label input {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin-top: 7px;
+    border: 1px solid #dce4ef;
+    border-radius: 8px;
+    font-size: 15px;
+}
+
+.auth-switch {
+    background: white !important;
+    color: #3978cf !important;
+}
+
+.auth-cancel {
+    background: #edf1f6 !important;
+    color: #61718a !important;
+}
+
+#authMessage {
+    font-size: 13px;
+    color: #d14b4b;
+    min-height: 18px;
 }
 </style>
 </head>
@@ -445,16 +476,60 @@ footer {
 
 <div class="modal" id="loginModal">
     <div class="modal-content">
-        <h3>로그인</h3>
-        <p>
-            계정별 즐겨찾기 동기화와 관리자 출제 기능은
-            서버 연결 후 이용할 수 있습니다.
-        </p>
-        <button onclick="closeLogin()">확인</button>
+        <h3 id="authTitle">로그인</h3>
+
+        <label class="auth-label">
+            아이디
+            <input id="authUsername"
+                   type="text"
+                   placeholder="아이디 입력"
+                   autocomplete="username">
+        </label>
+
+        <label class="auth-label">
+            비밀번호
+            <input id="authPassword"
+                   type="password"
+                   placeholder="비밀번호 입력"
+                   autocomplete="current-password">
+        </label>
+
+        <label class="auth-label" id="confirmPasswordWrap" hidden>
+            비밀번호 확인
+            <input id="authPasswordConfirm"
+                   type="password"
+                   placeholder="비밀번호 다시 입력">
+        </label>
+
+        <p id="authMessage"></p>
+
+        <button onclick="submitAuth()" id="authSubmit">
+            로그인
+        </button>
+
+        <button onclick="toggleAuthMode()" id="authSwitch"
+                class="auth-switch">
+            회원가입하기
+        </button>
+
+        <button onclick="closeLogin()" class="auth-cancel">
+            닫기
+        </button>
     </div>
 </div>
 
 <script>
+
+const SUPABASE_URL =
+"https://tcrejtavxvyyokbfwyzl.supabase.co";
+
+const SUPABASE_KEY =
+"sb_publishable_bCLJ54ZixMxJjA9O4HD5VQ_OMZYgvLZ";
+
+const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
 
 let questions = [];
 let mode = "all";
@@ -462,24 +537,104 @@ let index = 0;
 let selected = null;
 let submitted = false;
 
-let favorites = JSON.parse(
-    localStorage.getItem("sb_favorites") || "[]"
-);
+let currentUser = null;
+let authMode = "login";
 
-let wrongs = JSON.parse(
-    localStorage.getItem("sb_wrongs") || "[]"
-);
+let favorites = [];
+let wrongs = [];
 
-function saveData() {
+async function loadUserData() {
+    if (currentUser) {
+        favorites = [];
+        wrongs = [];
+
+        const { data, error } = await supabaseClient
+            .from("user_question_state")
+            .select("question_id,favorite,wrong");
+
+        if (error) {
+            console.error(error);
+            return;
+        }
+
+        data.forEach(item => {
+            if (item.favorite) {
+                favorites.push(String(item.question_id));
+            }
+
+            if (item.wrong) {
+                wrongs.push(String(item.question_id));
+            }
+        });
+
+    } else {
+        favorites = JSON.parse(
+            localStorage.getItem("sb_favorites_guest") ||
+            localStorage.getItem("sb_favorites") ||
+            "[]"
+        ).map(String);
+
+        wrongs = JSON.parse(
+            localStorage.getItem("sb_wrongs_guest") ||
+            localStorage.getItem("sb_wrongs") ||
+            "[]"
+        ).map(String);
+    }
+}
+
+async function saveData(questionId) {
+    const suffix = currentUser ? currentUser.id : "guest";
+
     localStorage.setItem(
-        "sb_favorites",
+        `sb_favorites_${suffix}`,
         JSON.stringify(favorites)
     );
 
     localStorage.setItem(
-        "sb_wrongs",
+        `sb_wrongs_${suffix}`,
         JSON.stringify(wrongs)
     );
+
+    if (!currentUser || !questionId) return;
+
+    const { error } = await supabaseClient
+        .from("user_question_state")
+        .upsert({
+            user_id: currentUser.id,
+            question_id: String(questionId),
+            favorite: favorites.includes(String(questionId)),
+            wrong: wrongs.includes(String(questionId)),
+            updated_at: new Date().toISOString()
+        }, {
+            onConflict: "user_id,question_id"
+        });
+
+    if (error) {
+        console.error("학습 기록 저장 오류:", error);
+    }
+}
+
+function updateAuthUI() {
+    const button = document.querySelector(".login-button");
+    const status = document.getElementById("authStatus");
+
+    if (currentUser) {
+        const username =
+            currentUser.user_metadata?.username || "회원";
+
+        button.textContent = "로그아웃";
+
+        if (status) {
+            status.textContent = `${username}님 로그인 중`;
+        }
+
+    } else {
+        button.textContent = "로그인";
+
+        if (status) {
+            status.textContent = "로그인하면 학습 기록이 저장됩니다.";
+        }
+    }
 }
 
 async function loadQuestions() {
@@ -968,7 +1123,7 @@ function closeLogin() {
 }
 
 loadQuestions();
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </script>
 
 </body>
