@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>스터디뱅크 | Study Bank</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 30px 15px;
+    background: #A8DDF2;
+    font-family: Arial, "Malgun Gothic", sans-serif;
+    color: #222;
+}
+
+.container {
+    max-width: 760px;
+    min-height: 850px;
+    margin: 0 auto;
+    padding: 65px 75px 35px;
+    background: #fff;
+    border-radius: 40px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+}
+
+h1 {
+    font-size: 38px;
+    font-weight: 900;
+    line-height: 1.5;
+    margin: 0 0 65px;
+    letter-spacing: -1.5px;
+}
+
+.subjects {
+    display: flex;
+    flex-direction: column;
+    gap: 42px;
+}
+
+.subject-btn {
+    width: 100%;
+    height: 140px;
+    border: none;
+    border-radius: 38px;
+    background: #CFD6DE;
+    color: #222;
+    font-size: 34px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.subject-btn:hover {
+    background: #B7C7D5;
+    transform: translateY(-3px);
+}
+
+.login-link {
+    margin-top: auto;
+    padding: 55px 0 10px;
+    color: #777;
+    font-size: 17px;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.login-link:hover {
+    color: #298DBB;
+}
+
+.login-section {
+    display: none;
+    max-width: 760px;
+    margin: 25px auto;
+    padding: 50px;
+    background: white;
+    border-radius: 35px;
+    text-align: center;
+}
+
+.login-section:target {
+    display: block;
+}
+
+.login-section h2 {
+    font-size: 30px;
+    margin-bottom: 35px;
+}
+
+.login-input {
+    display: block;
+    width: 100%;
+    padding: 17px;
+    margin: 15px 0;
+    border: 1px solid #ccd5dc;
+    border-radius: 12px;
+    font-size: 16px;
+}
+
+.login-btn {
+    width: 100%;
+    padding: 17px;
+    margin-top: 15px;
+    border: none;
+    border-radius: 12px;
+    background: #A8DDF2;
+    font-size: 17px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.back-link {
+    display: block;
+    margin-top: 25px;
+    color: #777;
+    text-decoration: none;
+}
+
+.notice {
+    margin-top: 25px;
+    color: #777;
+    font-size: 15px;
+}
+
+@media(max-width:600px) {
+    body {
+        padding: 15px 10px;
+    }
+
+    .container {
+        min-height: 85vh;
+        padding: 55px 25px 25px;
+        border-radius: 30px;
+    }
+
+    h1 {
+        font-size: 29px;
+        margin-bottom: 55px;
+    }
+
+    .subjects {
+        gap: 30px;
+    }
+
+    .subject-btn {
+        height: 115px;
+        font-size: 29px;
+        border-radius: 30px;
+    }
+
+    .login-section {
+        padding: 35px 25px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<main class="container">
+
+    <h1>
+        지구과학Ⅰ 시험대비<br>
+        개념총정리 문항
+    </h1>
+
+    <div class="subjects">
+
+        <button class="subject-btn"
+        onclick="selectSubject('고체')">
+            고체
+        </button>
+
+        <button class="subject-btn"
+        onclick="selectSubject('유체')">
+            유체
+        </button>
+
+        <button class="subject-btn"
+        onclick="selectSubject('우주')">
+            우주
+        </button>
+
+    </div>
+
+    <a href="#login" class="login-link">
+        로그인
+    </a>
+
+</main>
+
+<section id="login" class="login-section">
+
+    <h2>스터디뱅크 로그인</h2>
+
+    <input
+        class="login-input"
+        type="text"
+        placeholder="아이디"
+    >
+
+    <input
+        class="login-input"
+        type="password"
+        placeholder="비밀번호"
+    >
+
+    <button class="login-btn"
+    onclick="alert('로그인 시스템을 연결할 예정입니다.')">
+        로그인
+    </button>
+
+    <p class="notice">
+        회원가입 및 계정 인증 기능은 준비 중입니다.
+    </p>
+
+    <a href="#" class="back-link">
+        메인 화면으로 돌아가기
+    </a>
+
+</section>
+
+<script>
+
+function selectSubject(subject) {
+    alert(subject + " 단원은 문제은행 연결 후 이용할 수 있습니다.");
+}
+
+</script>
+
+</body>
+</html>
