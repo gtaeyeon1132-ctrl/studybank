@@ -606,7 +606,6 @@ footer {
 </div>
 
 <script>
-<script>
 window.addEventListener("error", function(event) {
     alert(
         "스크립트 오류: " + event.message +
@@ -620,7 +619,6 @@ window.addEventListener("unhandledrejection", function(event) {
         (event.reason?.message || event.reason)
     );
 });
-</script>
 // ==================================
 // 1. SUPABASE 연결
 // ==================================
@@ -929,7 +927,7 @@ renderQuestionNav(list);
     }
 
     const q = list[index];
-renderQuestionNav(list);
+
     selected = null;
     submitted = false;
 
@@ -1278,8 +1276,9 @@ async function checkAnswer() {
             return;
         }
 
-        const a = [...selected].sort(     const b = [...q.answer].sort();
+        const a = [...selected].sort();
 
+const b = [...q.answer].sort();
         correct =
             JSON.stringify(a) === JSON.stringify(b);
     }
