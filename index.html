@@ -606,7 +606,21 @@ footer {
 </div>
 
 <script>
+<script>
+window.addEventListener("error", function(event) {
+    alert(
+        "스크립트 오류: " + event.message +
+        "\n줄 번호: " + event.lineno
+    );
+});
 
+window.addEventListener("unhandledrejection", function(event) {
+    alert(
+        "비동기 오류: " +
+        (event.reason?.message || event.reason)
+    );
+});
+</script>
 // ==================================
 // 1. SUPABASE 연결
 // ==================================
